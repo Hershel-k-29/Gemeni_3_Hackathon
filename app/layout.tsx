@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Gemini Chatbot',
-  description: 'A chatbot powered by Google Gemini',
+  title: 'Bio-Genomic What-If Engine',
+  description: 'From code to consequence — AI-driven prediction of genetic mutation outcomes',
 };
 
 export default function RootLayout({
@@ -13,7 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Script
+          src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"
+          strategy="beforeInteractive"
+        />
+        {children}
+      </body>
     </html>
   );
 }

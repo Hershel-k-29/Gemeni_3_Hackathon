@@ -17,10 +17,9 @@ npm install
 ```
 
 2. Set up your environment variables:
-   - Make sure your `.env` file contains your Google Gemini API key:
-   ```
-   API_KEY=your_api_key_here
-   ```
+   - Copy `.env.example` to `.env` (e.g. `copy .env.example .env` on Windows, `cp .env.example .env` on Mac/Linux)
+   - Add your Google Gemini API key to `.env` (get one at [Google AI Studio](https://aistudio.google.com/apikey))
+   - **Never commit `.env`** — it's in `.gitignore` for security
 
 3. Run the development server:
 ```bash

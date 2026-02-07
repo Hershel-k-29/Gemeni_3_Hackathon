@@ -69,8 +69,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: text || '(No response generated)' });
   } catch (error) {
     console.error('Error in chat API:', error);
+    const message = error instanceof Error ? error.message : 'Failed to get response from AI';
     return NextResponse.json(
-      { error: 'Failed to get response from AI' },
+      { error: message },
       { status: 500 }
     );
   }

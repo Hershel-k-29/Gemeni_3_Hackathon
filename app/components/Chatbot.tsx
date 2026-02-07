@@ -79,7 +79,7 @@ export default function Chatbot() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-gray-50">
+    <div className="flex flex-col h-screen max-w-4xl mx-auto bg-yellow-100">
       {/* Header */}
       <div className="bg-blue-600 text-white p-4 shadow-md">
         <h1 className="text-2xl font-bold">Gemini Chatbot</h1>
@@ -120,14 +120,14 @@ export default function Chatbot() {
       </div>
 
       {/* Input */}
-      <div className="border-t bg-white p-4">
+      <div className="border-t bg-yellow-100 p-4">
         <div className="flex gap-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={1}
             disabled={isLoading}
           />

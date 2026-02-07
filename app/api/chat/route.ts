@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 
-const apiKey = process.env.API_KEY;
+const apiKey = process.env.API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey || '');
 
 type IncomingMsg = { role: string; content: string };
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'Server misconfigured: API_KEY is missing' },
+        { error: 'API key missing. Set API_KEY, GEMINI_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY in .env' },
         { status: 500 }
       );
     }
@@ -59,9 +59,14 @@ export async function POST(request: NextRequest) {
     // Send message and get response
     const result = await chat.sendMessage(message);
     const response = await result.response;
-    const text = response.text();
+    let text = '';
+    try {
+      text = response.text() || '';
+    } catch {
+      text = 'The model did not return any text.';
+    }
 
-    return NextResponse.json({ message: text });
+    return NextResponse.json({ message: text || '(No response generated)' });
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(

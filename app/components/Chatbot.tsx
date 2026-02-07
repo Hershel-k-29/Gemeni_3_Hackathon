@@ -54,17 +54,19 @@ export default function Chatbot() {
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        throw new Error(data.error || 'Failed to get response');
       }
 
-      const data = await response.json();
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.message || '(No response)' }]);
     } catch (error) {
       console.error('Error sending message:', error);
+      const message = error instanceof Error ? error.message : 'Sorry, I encountered an error. Please try again.';
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }
+        { role: 'assistant', content: `Error: ${message}` }
       ]);
     } finally {
       setIsLoading(false);

@@ -23,7 +23,7 @@ export default function ImpactMap({ levels, className = '' }: ImpactMapProps) {
   if (levels.length === 0) {
     return (
       <div
-        className={`rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-center text-zinc-500 text-sm ${className}`}
+        className={`rounded-xl border border-dashed border-zinc-700/60 bg-zinc-900/30 p-8 text-center text-zinc-500 text-sm ${className}`}
       >
         Impact map will appear after analysis
       </div>
@@ -37,7 +37,7 @@ export default function ImpactMap({ levels, className = '' }: ImpactMapProps) {
         return (
           <div
             key={item.level}
-            className={`rounded-xl border ${style.border} ${style.bg} p-4 transition-all hover:border-opacity-80`}
+            className={`rounded-xl border ${style.border} ${style.bg} p-4 transition-all hover:shadow-lg`}
           >
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xl">{style.icon}</span>

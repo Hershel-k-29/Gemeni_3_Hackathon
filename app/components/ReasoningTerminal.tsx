@@ -9,15 +9,15 @@ interface ReasoningTerminalProps {
 export default function ReasoningTerminal({ steps, isLoading, className = '' }: ReasoningTerminalProps) {
   return (
     <div
-      className={`rounded-xl border border-emerald-900/50 bg-[#0d1117] overflow-hidden font-mono text-sm ${className}`}
+      className={`rounded-xl border border-zinc-800/80 bg-zinc-900/50 overflow-hidden font-mono text-sm shadow-xl shadow-black/10 ${className}`}
     >
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-emerald-900/50 bg-emerald-950/30">
-        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-800/80 bg-zinc-900/80">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         <span className="text-emerald-400 font-semibold">Gemini Chain of Thought</span>
       </div>
-      <div className="p-4 max-h-[320px] overflow-y-auto space-y-3">
+      <div className="p-4 max-h-[360px] overflow-y-auto space-y-3">
         {steps.length === 0 && !isLoading && (
-          <p className="text-zinc-500 text-xs">Run a mutation analysis to see reasoning...</p>
+          <p className="text-zinc-500 text-sm py-8 text-center">Run a mutation analysis to see AI reasoning...</p>
         )}
         {steps.map((step, i) => (
           <div key={i} className="flex gap-3">

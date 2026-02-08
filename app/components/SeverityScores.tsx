@@ -21,7 +21,7 @@ export default function SeverityScores({ scores, className = '' }: SeverityScore
   if (scores.length === 0) {
     return (
       <div
-        className={`rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 text-center text-zinc-500 text-sm ${className}`}
+        className={`rounded-xl border border-dashed border-zinc-700/60 bg-zinc-900/30 p-8 text-center text-zinc-500 text-sm ${className}`}
       >
         Severity scores will appear after analysis
       </div>

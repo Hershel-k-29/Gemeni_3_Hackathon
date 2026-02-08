@@ -17,7 +17,7 @@ export default function RootLayout({
       <body>
         <Script
           src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"
-          strategy="beforeInteractive"
+          strategy="lazyOnload"
         />
         {children}
       </body>

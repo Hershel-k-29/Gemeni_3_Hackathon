@@ -5,74 +5,101 @@ import { useEffect, useRef, useState } from 'react';
 declare global {
   interface Window {
     $3Dmol?: {
-      createViewer: (element: HTMLElement | string, opts?: Record<string, unknown>) => {
+      createViewer: (
+        element: HTMLElement,
+        opts?: { backgroundColor?: string }
+      ) => {
         addModel: (data: string, format: string) => unknown;
-        setStyle: (sel: object, style: object) => unknown;
-        zoomTo: (sel?: object) => unknown;
+        setStyle: (sel: object, style: object) => void;
+        zoomTo: (sel?: object) => void;
         render: () => void;
         clear: () => void;
-        removeAllModels: () => void;
       };
     };
   }
 }
 
-const PDB_URLS: Record<string, string> = {
-  normal: 'https://files.rcsb.org/view/1HHO.pdb',
-  sickle: 'https://files.rcsb.org/view/2HBS.pdb',
-};
-
 interface MolecularViewerProps {
   pdbId?: string;
   variant?: 'normal' | 'sickle';
-  stressRegions?: string[];
   className?: string;
 }
 
-export default function MolecularViewer({ pdbId, variant = 'normal', stressRegions, className = '' }: MolecularViewerProps) {
+function getPdbId(pdbId?: string, variant?: 'normal' | 'sickle'): string {
+  if (pdbId) return pdbId;
+  return variant === 'sickle' ? '2HBS' : '1HHO';
+}
+
+function waitFor3Dmol(): Promise<typeof window.$3Dmol> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') {
+      reject(new Error('window undefined'));
+      return;
+    }
+    if (window.$3Dmol) {
+      resolve(window.$3Dmol);
+      return;
+    }
+    let resolved = false;
+    const check = setInterval(() => {
+      if (window.$3Dmol && !resolved) {
+        resolved = true;
+        clearInterval(check);
+        clearTimeout(timeout);
+        resolve(window.$3Dmol!);
+      }
+    }, 100);
+    const timeout = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        clearInterval(check);
+        reject(new Error('3Dmol.js failed to load'));
+      }
+    }, 15000);
+  });
+}
+
+export default function MolecularViewer({
+  pdbId,
+  variant = 'normal',
+  className = '',
+}: MolecularViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<ReturnType<typeof window.$3Dmol.createViewer> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const pdbSource = pdbId
-    ? `https://files.rcsb.org/view/${pdbId}.pdb`
-    : PDB_URLS[variant] || PDB_URLS.normal;
+  const targetPdb = getPdbId(pdbId, variant);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const initViewer = async () => {
-      if (typeof window === 'undefined') return;
+    let cancelled = false;
 
-      if (!window.$3Dmol) {
-        const script = document.createElement('script');
-        script.src = 'https://3Dmol.csb.pitt.edu/build/3Dmol-min.js';
-        script.async = true;
-        script.onload = () => loadStructure();
-        script.onerror = () => setError('Failed to load 3Dmol.js');
-        document.head.appendChild(script);
-        return;
-      }
-
-      loadStructure();
-    };
-
-    const loadStructure = async () => {
-      if (!window.$3Dmol || !containerRef.current) return;
-
+    const run = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(pdbSource);
-        if (!res.ok) throw new Error(`Failed to fetch PDB: ${res.status}`);
-        const pdbData = await res.text();
+        const mol = await waitFor3Dmol();
+        if (cancelled) return;
+
+        const pdbRes = await fetch(`/api/pdb/${targetPdb}`);
+        if (!pdbRes.ok) throw new Error(`Failed to load PDB: ${pdbRes.status}`);
+        const pdbData = await pdbRes.text();
+        if (cancelled) return;
 
         if (viewerRef.current) {
-          viewerRef.current.removeAllModels();
-        } else {
-          viewerRef.current = window.$3Dmol.createViewer(containerRef.current, {
+          try {
+            viewerRef.current.clear();
+          } catch {
+            viewerRef.current = null;
+          }
+        }
+
+        if (!viewerRef.current) {
+          viewerRef.current = mol.createViewer(container, {
             backgroundColor: '0x0d1117',
           });
         }
@@ -90,35 +117,44 @@ export default function MolecularViewer({ pdbId, variant = 'normal', stressRegio
         viewerRef.current.zoomTo();
         viewerRef.current.render();
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load structure');
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Failed to load structure');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    initViewer();
-
+    run();
     return () => {
-      if (viewerRef.current) {
-        viewerRef.current.removeAllModels?.();
-      }
+      cancelled = true;
     };
-  }, [pdbSource]);
+  }, [targetPdb]);
 
   return (
-    <div className={`relative w-full h-full min-h-[320px] rounded-xl overflow-hidden bg-[#0d1117] ${className}`}>
-      <div ref={containerRef} className="absolute inset-0 w-full h-full" style={{ minHeight: 320 }} />
+    <div
+      className={`relative w-full rounded-xl overflow-hidden bg-[#0d1117] ${className}`}
+      style={{ minHeight: 320 }}
+    >
+      <div
+        ref={containerRef}
+        className="w-full h-full"
+        style={{ width: '100%', height: 400, minHeight: 400, position: 'relative' }}
+      />
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1117]/90">
+        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1117]/95">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-emerald-400">Loading structure...</span>
           </div>
         </div>
       )}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1117]/90">
-          <p className="text-amber-400 text-sm">{error}</p>
+      {error && !loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1117]/95">
+          <div className="text-center px-4">
+            <p className="text-amber-400 text-sm">{error}</p>
+            <p className="text-zinc-500 text-xs mt-2">PDB ID: {targetPdb}</p>
+          </div>
         </div>
       )}
     </div>
